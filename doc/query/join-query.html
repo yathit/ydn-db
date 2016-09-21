@@ -35,7 +35,7 @@
 <meta property="twitter:site" content="@yathit" />
 <meta property="twitter:description" content="Join Query" />
 <meta property="twitter:creator" content="@yathit" />
-<meta property="twitter:image:src" content="http://dev.yathit.com/imgs/logo.png" />
+<meta property="twitter:image:src" content="/ydn-db/imgs/logo.png" />
 
 
 <link rel="author" href="https://plus.google.com/+KyawTun-Yathit/posts">
@@ -56,8 +56,8 @@
   
 " />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="http://dev.yathit.com/" />
-<meta property="og:image" content="http://dev.yathit.com/imgs/logo.png" />
+<meta property="og:url" content="/ydn-db/" />
+<meta property="og:image" content="/ydn-db/imgs/logo.png" />
 
 <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/iccdnijlhdogaccaiafdpjmbakdcdakk">
 <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/ldikiokclnbceabnlbkabmcacpiednop">
@@ -371,7 +371,7 @@ db.put('Part-Supplier', [
       <li>You query with multiple ranges.</li>
     </ol>
 
-    <p>This example uses a full table scan in YDN-DB for the query <code>SELECT * FROM Supplier, Part WHERE Supplier.CITY = Part.CITY</code>.  The<a href="http://dev.yathit.com/api/ydn/db/storage.html#scan"><code>db.scan</code></a> method is used to scan multiple tables at the same time. The code snippet uses a nested loop, in which inner table does a full table scan for each outer table record:</p>
+    <p>This example uses a full table scan in YDN-DB for the query <code>SELECT * FROM Supplier, Part WHERE Supplier.CITY = Part.CITY</code>.  The<a href="/ydn-db/api/ydn/db/storage.html#scan"><code>db.scan</code></a> method is used to scan multiple tables at the same time. The code snippet uses a nested loop, in which inner table does a full table scan for each outer table record:</p>
 
     <pre><code>var iter_supplier = new ydn.db.ValueIterator('Supplier');
 var iter_part = new ydn.db.ValueIterator('Part');
@@ -554,7 +554,7 @@ var req = db.scan(function(keys, values) {
       </ul>
 
       <div class="main-footer__google-section">
-        <h3 class="main-footer__title"><a href="http://dev.yathit.com/">
+        <h3 class="main-footer__title"><a href="/ydn-db/">
           <img id="developers-logo-footer" src="/imgs/yathit-dev-network.svg" alt="Yathit Developer Network logo">
         </a></h3>
         <ul class="main-footer__list main-footer__list--secondary google-list">

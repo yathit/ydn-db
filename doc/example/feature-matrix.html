@@ -35,7 +35,7 @@
 <meta property="twitter:site" content="@yathit" />
 <meta property="twitter:description" content="NoSQL query" />
 <meta property="twitter:creator" content="@yathit" />
-<meta property="twitter:image:src" content="http://dev.yathit.com/imgs/logo.png" />
+<meta property="twitter:image:src" content="/ydn-db/imgs/logo.png" />
 
 
 <link rel="author" href="https://plus.google.com/+KyawTun-Yathit/posts">
@@ -56,8 +56,8 @@
   
 " />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="http://dev.yathit.com/" />
-<meta property="og:image" content="http://dev.yathit.com/imgs/logo.png" />
+<meta property="og:url" content="/ydn-db/" />
+<meta property="og:image" content="/ydn-db/imgs/logo.png" />
 
 <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/iccdnijlhdogaccaiafdpjmbakdcdakk">
 <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/ldikiokclnbceabnlbkabmcacpiednop">
@@ -307,7 +307,7 @@
 
     <p>There is on thing to note. Most of the web app examples, that you might found are synchronous, meaning that database service return query result. However YDN-DB always return asynchronously in the form of JQuery compatible promise. AngularJS also use <a href="http://api.jquery.com/promise/">JQuery compatible promise</a>. Here, compatible means you can directly chain the promise. However AngularJS promise, $q, has optimization twist. $q deferred resolution synchronize with AngularJS render event cycle so that DOM manipulation are orchestrated to reduce browser point refresh. However YDN-DB deferred, nor JQuery deferred, aware of them. Teh application logic has to to pump event up by invoking <a href="http://docs.angularjs.org/api/ng.$rootScope.Scope#methods_$apply">$scope.$apply()</a> for each deferred resolution. We will see this in controller, where the database service is consumed.  </p>
 
-    <p>To enable synchronization between client database and backend server, <a href="http://dev.yathit.com/api-reference/ydn-db/schema.html#sync">Sync attribute</a> is added into the database store schema by specifying backend service type and name. Basic format will be ‘rest’, representing RESTful backend server. Here Google Cloud Storage backend service, first class citizen in YDN-DB, is used by specifying gcs format, which is essentially equals to s3 format. The only require attribute is bucket for Google Cloud Storage bucket name. When database CRUD operation are performed, corresponding HTTP methods are conditional request are made to the server.   </p>
+    <p>To enable synchronization between client database and backend server, <a href="/ydn-db/api-reference/ydn-db/schema.html#sync">Sync attribute</a> is added into the database store schema by specifying backend service type and name. Basic format will be ‘rest’, representing RESTful backend server. Here Google Cloud Storage backend service, first class citizen in YDN-DB, is used by specifying gcs format, which is essentially equals to s3 format. The only require attribute is bucket for Google Cloud Storage bucket name. When database CRUD operation are performed, corresponding HTTP methods are conditional request are made to the server.   </p>
 
     <pre><code>var schema = {
   stores: [{
@@ -524,7 +524,7 @@
 
     <h2 id="questions">Questions?</h2>
 
-    <p>Please check out running <a href="http://dev.yathit.com/demo/feature-matrix/index.html">demo app</a> to understand how the app work. Full source code is available in <a href="https://github.com/yathit/feature-matrix">Github</a>. To replicate the repo, you will need to create Google Cloud Storage bucket and configure as described in the project readme file.</p>
+    <p>Please check out running <a href="/ydn-db/demo/feature-matrix/index.html">demo app</a> to understand how the app work. Full source code is available in <a href="https://github.com/yathit/feature-matrix">Github</a>. To replicate the repo, you will need to create Google Cloud Storage bucket and configure as described in the project readme file.</p>
 
     <p>If you are not clear about how or why, feel free to make a comment below. For bug report of the source code, please fine issue on github. For alternative or better idea, please discuss and send pull request.</p>
 
@@ -665,7 +665,7 @@
       </ul>
 
       <div class="main-footer__google-section">
-        <h3 class="main-footer__title"><a href="http://dev.yathit.com/">
+        <h3 class="main-footer__title"><a href="/ydn-db/">
           <img id="developers-logo-footer" src="/imgs/yathit-dev-network.svg" alt="Yathit Developer Network logo">
         </a></h3>
         <ul class="main-footer__list main-footer__list--secondary google-list">

@@ -34,7 +34,7 @@
 <meta property="twitter:site" content="@yathit" />
 <meta property="twitter:description" content="" />
 <meta property="twitter:creator" content="@yathit" />
-<meta property="twitter:image:src" content="http://dev.yathit.com/imgs/logo.png" />
+<meta property="twitter:image:src" content="/ydn-db/imgs/logo.png" />
 
 
 <link rel="author" href="https://plus.google.com/+KyawTun-Yathit/posts">
@@ -55,8 +55,8 @@
   
 " />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="http://dev.yathit.com/" />
-<meta property="og:image" content="http://dev.yathit.com/imgs/logo.png" />
+<meta property="og:url" content="/ydn-db/" />
+<meta property="og:image" content="/ydn-db/imgs/logo.png" />
 
 <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/iccdnijlhdogaccaiafdpjmbakdcdakk">
 <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/ldikiokclnbceabnlbkabmcacpiednop">
@@ -314,7 +314,7 @@
 
     <p>Currently client-side database are <a href="http://www.w3.org/TR/quota-api/#temporary">temporary storage</a>. The data can be wipe out anytime without informing to user or script. Data corruption instance has been observed to SQLite and Chrome IndexedDB during opening the database. If corruption occur, whole database or only certain object store can wipe out.</p>
 
-    <p>The most unpredictable operation is database connection. For an application to robust, <a href="http://dev.yathit.com/api-reference/ydn-db/storage.html">storage events</a> dispatched from the storage instance should be listened and validate data integrity.</p>
+    <p>The most unpredictable operation is database connection. For an application to robust, <a href="/ydn-db/api-reference/ydn-db/storage.html">storage events</a> dispatched from the storage instance should be listened and validate data integrity.</p>
 
     <pre><code>var db_name = 'test-db-3';
 var options = {};
@@ -469,7 +469,7 @@ db.addEventListener('fail', function(ev) {
       </ul>
 
       <div class="main-footer__google-section">
-        <h3 class="main-footer__title"><a href="http://dev.yathit.com/">
+        <h3 class="main-footer__title"><a href="/ydn-db/">
           <img id="developers-logo-footer" src="/imgs/yathit-dev-network.svg" alt="Yathit Developer Network logo">
         </a></h3>
         <ul class="main-footer__list main-footer__list--secondary google-list">
