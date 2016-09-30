@@ -390,12 +390,7 @@ ydn.db.con.Storage.PREFERENCE = [
  * suitability.
  */
 ydn.db.con.Storage.getDefaultMechanism = function() {
-  if (goog.userAgent.product.SAFARI || goog.labs.userAgent.platform.isIos()) {
-    // IndexedDB in Safari is too buggy at this moment.
-    return goog.array.slice(ydn.db.con.Storage.PREFERENCE, 1);
-  } else {
-    return ydn.db.con.Storage.PREFERENCE;
-  }
+  return ydn.db.con.Storage.PREFERENCE;
 };
 
 
