@@ -189,16 +189,18 @@ ydn.db.con.simple.Store.prototype.getIndexCache = function(opt_index_name) {
               var index = this.schema.getIndex(index_name);
               var obj = ydn.json.parse(obj_str);
               var index_key = /** @type {IDBKey} */ (index.extractKey(obj));
-              if (index.isMultiEntry()) {
-                if (goog.isArray(index_key)) {
-                  for (var k = 0; k < index_key.length; k++) {
-                    var i_node = new ydn.db.con.simple.Node(index_key[k], key);
-                    this.key_indexes[index_name].add(i_node);
+              if (index_key) {
+                if (index.isMultiEntry()) {
+                  if (goog.isArray(index_key)) {
+                    for (var k = 0; k < index_key.length; k++) {
+                      var i_node = new ydn.db.con.simple.Node(index_key[k], key);
+                      this.key_indexes[index_name].add(i_node);
+                    }
                   }
+                } else {
+                  var index_node = new ydn.db.con.simple.Node(index_key, key);
+                  this.key_indexes[index_name].add(index_node);
                 }
-              } else {
-                var index_node = new ydn.db.con.simple.Node(index_key, key);
-                this.key_indexes[index_name].add(index_node);
               }
             }
           }

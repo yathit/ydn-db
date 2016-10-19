@@ -366,6 +366,9 @@ ydn.db.core.req.SimpleCursor.prototype.openCursor = function(
      * @return {boolean|undefined} continuation.
      */
     var onSuccess = function(node) {
+      if (!node) {
+        return this.defaultOnSuccess_(node);
+      }
       var x = /** @type {ydn.db.con.simple.Node} */ (node.value);
       var key = x.getKey();
       // console.log('on ', x);
