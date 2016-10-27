@@ -56,3 +56,40 @@ function test_racy() {
   to_del.push(to_del);
 }
 
+function test_issu98() {
+  var schema = {
+    stores: [
+      {
+        name: 'test',
+        keyPath: 'id',
+        indexes: [
+          {
+            keyPath: ['first', 'last']
+          },
+          {
+            keyPath: 'first'
+          },
+          {
+            keyPath: 'last'
+          }
+        ]
+      }]};
+  var option = {mechanisms: ['websql']};
+  var db1 = new ydn.db.crud.Storage('issue98', schema, option);
+  asyncTestCase.waitForAsync('put in db1');
+  var data = {id: 1, first: 'First', last: 'Last'};
+  db1.put('test', data).addCallback(function() {
+    var db2 = new ydn.db.crud.Storage('issue98', schema, option);
+    asyncTestCase.continueTesting();
+    asyncTestCase.waitForAsync('values');
+    db1.close();
+    db2.values('test').addCallback(function(arr) {
+      assertArrayEquals(data, arr);
+      asyncTestCase.continueTesting();
+      ydn.db.deleteDatabase(db_name, db2.getType());
+      db2.close();
+    });
+  });
+  to_del.push(to_del);
+}
+
