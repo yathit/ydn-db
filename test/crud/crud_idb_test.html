@@ -12,10 +12,12 @@
     <script type="text/javascript" >
         goog.require('ydn.debug');
         goog.require('goog.userAgent');
+        goog.require('goog.testing.AsyncTestCase');
+        goog.require('goog.testing.ContinuationTestCase');
+        goog.require('goog.testing.jsunit');
     </script>
     <script type="text/javascript" >
-	    goog.require('goog.testing.ContinuationTestCase');
-	    goog.require('goog.testing.jsunit');
+
       options = {mechanisms: ['indexeddb']};
         if (goog.userAgent.MOBILE) {
             var div = document.createElement('div');

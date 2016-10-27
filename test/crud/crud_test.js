@@ -1,6 +1,5 @@
 
 goog.require('goog.debug.Console');
-goog.require('goog.testing.AsyncTestCase');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.jsunit');
 goog.require('ydn.async');
@@ -8,7 +7,7 @@ goog.require('ydn.db.crud.Storage');
 goog.require('ydn.debug');
 
 var asyncTestCase = goog.testing.AsyncTestCase.createAndInstall();
-var schema, debug_console, db, objs;
+var debug_console, db, objs;
 
 var table_name = 'st_inline';
 var table_name_offline = 'st_offline';
@@ -26,19 +25,24 @@ function setUp () {
   //ydn.db.crud.req.IndexedDb.DEBUG = true;
   // ydn.db.con.IndexedDb.DEBUG = true;
 
-  var indexes = [new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT)];
-  var stores = [new ydn.db.schema.Store(table_name, 'id'),
-    new ydn.db.schema.Store(store_name_inline_number, 'id', false, ydn.db.schema.DataType.NUMERIC, undefined, true),
-    new ydn.db.schema.Store(table_name_offline, undefined, false, ydn.db.schema.DataType.NUMERIC),
-    new ydn.db.schema.Store(load_store_name, 'id', false, ydn.db.schema.DataType.NUMERIC, indexes)
-  ];
-  schema = new ydn.db.schema.Database(undefined, stores);
+
 
 }
 
 
 function tearDown() {
 
+}
+
+
+function getSchema() {
+  var indexes = [new ydn.db.schema.Index('tag', ydn.db.schema.DataType.TEXT)];
+  var stores = [new ydn.db.schema.Store(table_name, 'id'),
+    new ydn.db.schema.Store(store_name_inline_number, 'id', false, ydn.db.schema.DataType.NUMERIC, undefined, true),
+    new ydn.db.schema.Store(table_name_offline, undefined, false, ydn.db.schema.DataType.NUMERIC),
+    new ydn.db.schema.Store(load_store_name, 'id', false, ydn.db.schema.DataType.NUMERIC, indexes)
+  ];
+  return new ydn.db.schema.Database(undefined, stores);
 }
 
 
@@ -84,7 +88,7 @@ function test_add_inline() {
 
 function test_put() {
   var db_name = 'test_11_put';
-  var db = new ydn.db.crud.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, getSchema(), options);
 
   asyncTestCase.waitForAsync('put 1');
   db.put(table_name, {id: 'a', value: '1', remark: 'put test'}).addBoth(function(value) {
@@ -98,7 +102,7 @@ function test_put() {
 
 function test_put_key() {
   var db_name = 'test_13_put_key';
-  var db = new ydn.db.crud.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, getSchema(), options);
 
   var key = new ydn.db.Key(store_name_inline_number, 1);
   var value =
@@ -152,7 +156,7 @@ function test_count_store() {
 
 function test_remove_by_id() {
   var db_name = 'test_41_remove_by_key';
-  var db = new ydn.db.crud.Storage(db_name, schema, options);
+  var db = new ydn.db.crud.Storage(db_name, getSchema(), options);
   db.clear(table_name);
   db.put(table_name,
     [{id: 1}, {id: 2}, {id: 3}, {id: 4}]
