@@ -894,7 +894,7 @@ ydn.db.schema.Store.prototype.hintForWebSql = function(that) {
     if (that.indexes[i].isComposite()) {
       var name = that.indexes[i].getName();
       for (var j = indexes.length - 1; j >= 0; j--) {
-        if (name.indexOf(indexes[j].getName()) >= 0) {
+        if (name == indexes[j].getName()) {
           indexes[j] = that.indexes[i].clone();
           break;
         }
