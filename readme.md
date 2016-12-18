@@ -4,7 +4,7 @@ To use this , include one of the ydn-db
 minified js files from [download page](http://dev.yathit.com/ydn-db/downloads.html)
 in your HTML page.
 
-* [User Guide](http://dev.yathit.com/ydn-db/getting-started.html)
+* [User Guide](http://dev.yathit.com/ydn-db/doc/setup/index.html)
 * [API Reference](http://dev.yathit.com/api-reference/ydn-db/storage.html)
 * [Demo applications](http://dev.yathit.com/ydn-db/doc/example/index.html)
 * [Example applications](http://yathit.github.io/ydndb-demo/)
