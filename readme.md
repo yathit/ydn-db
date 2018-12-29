@@ -1,6 +1,6 @@
 # Setup #
 
-To use this , include one of the ydn-db
+To use this, include one of the ydn-db
 minified js files from [download page](http://dev.yathit.com/ydn-db/downloads.html)
 in your HTML page.
 
