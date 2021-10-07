@@ -1,0 +1,627 @@
+
+<!DOCTYPE html>
+<html lang="en" class="no-js no-touch">
+  <head>
+
+    <link type="text/css" rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro">
+    
+<meta charset="utf-8" />
+
+
+<title>
+  
+    Modeling relationships
+  
+</title>
+
+
+
+
+
+<meta name="author" content="https://plus.google.com/+KyawTun-Yathit/posts" />
+
+
+
+<meta name="description" content="Data modeling with YDN-DB" />
+
+
+<link rel="icon" href="/favicon.ico" />
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta id="viewport" name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="twitter:card" content="summary">
+<meta property="twitter:account_id" content="@yathit" />
+<meta property="twitter:site" content="@yathit" />
+<meta property="twitter:description" content="" />
+<meta property="twitter:creator" content="@yathit" />
+<meta property="twitter:image:src" content="/ydn-db/imgs/logo.png" />
+
+
+<link rel="author" href="https://plus.google.com/+KyawTun-Yathit/posts">
+<link rel="publisher" href="https://plus.google.com/+KyawTun-Yathit">
+
+<meta itemprop="name" content="
+  
+    Modeling relationships
+  
+">
+<link itemprop="image" href="/imgs/logo.png">
+<meta itemprop="description" content="Data modeling with YDN-DB">
+
+<meta property="og:site_name" content="Yathit" />
+<meta property="og:title" content="
+  
+    Modeling relationships
+  
+" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="/ydn-db/" />
+<meta property="og:image" content="/ydn-db/imgs/logo.png" />
+
+<link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/iccdnijlhdogaccaiafdpjmbakdcdakk">
+<link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/ldikiokclnbceabnlbkabmcacpiednop">
+
+<link rel="stylesheet" media="screen" href="/css/styles.min.css" />
+
+<script src="/js/analytics.js"></script>
+
+  </head>
+
+  <body class="page-doc page--article article--ydndb-using theme--ydndb-using" itemscope itemtype="http://schema.org/TechArticle">
+    
+
+    <header class="main-header">
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<nav class="main-nav">
+
+  <header class="main-nav__header">
+    <span class="main-nav__current-label">Modeling relationships</span>
+  </header>
+
+  <ul class="main-nav__list clear">
+  
+    
+    
+    <li class="main-nav__item main-nav__item--<strong>ydn-db</strong>
+                main-nav__item--home 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/index.html" title="Go to <strong>YDN-DB</strong>">
+
+        <strong>YDN-DB</strong>
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--download
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/downloads.html" title="Go to Download">
+
+        Download
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--documentation
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/doc/index.html" title="Go to Documentation">
+
+        Documentation
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--api
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/api/ydn/db/storage.html" title="Go to API">
+
+        API
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--examples
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="//dev.yathit.com/ydn-db/doc/example/index.html" title="Go to Examples">
+
+        Examples
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--github
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="https://github.com/yathit/ydn-db" title="Go to GitHub">
+
+        GitHub
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+
+  <li class="main-nav__item right">
+    <a class="main-nav__link main-nav__link--parent" id="user-login">...</a>
+  </li>
+  <li class="main-nav__item right">
+    <span class="main-nav__link main-nav__link--parent" id="user-name" style="display: none;"></span>
+  </li>
+
+  </ul>
+  <button class="main-nav__btn btn--toggle-nav">
+    <i class="icon icon-menu"></i>
+  </button>
+
+</nav>
+
+
+</header>
+
+
+    <div class="article-container" itemprop="text">
+
+       <div class="ydn-breadcrumb-before"></div>
+        <div class="container">
+           <div class="content">
+             <div id="ydn-breadcrumb" name="ydndb-doc"></div>
+           </div>
+        </div>
+        <div class="ydn-breadcrumb-after"></div>
+
+      <div class="editorial-header">
+        <div class="container">
+          <div class="content">
+
+            <h1 class="editorial-header__title"></h1>
+            <h2 class="editorial-header__subtitle" itemprop="name">Modeling relationships</h2>
+
+            <p class="editorial-header__excerpt" itemprop="headline">Data modeling with YDN-DB</p>
+
+          </div>
+        </div>
+      </div>
+
+
+      <div class="container"><div class="content ">
+
+    <p>The NoSQL style databases has often been termed non-relational databases. This is an unfortunate misconception. As we will see, IndexedDB can easily model relationships. The real problem, however, is it does not enforce integraty of the relationships.</p>
+
+    <p>A relationship is essentially a reference from one object to an object. Which means, making a relationship is as simple as keeping a reference of an object in an object. The reference will be a primary key. The three kinds of relationships, one-to-one, one-to-many, many-to-many are modeled by storing reference. The discussion here is how to records these reference so that bi-directional transversable, efficient and consistent. Unlike RMDB system, NoSQL do not have native support for relationship. In fact, getting ride of relationship is the main objective of NoSQL so as to offer in scalability and performance. People tern to over-rely on relationship model suffering un-necessary performance penalty.</p>
+
+    <h3 id="one-to-many-relationship">One-to-many relationship</h3>
+
+    <p>One-to-many relationship is modeled by keeping ‘one’ reference to objects in ‘many’ side. Reference is simply a primary key, which could be a string or an integer.</p>
+
+    <p>Refering to ‘author’ object store in previous session, the ‘author’, store has one index of named ‘company’. ‘author’ store is related to ‘company’ store by defining the following store schema.  </p>
+
+    <pre><code>company_store_schema = {
+  name: 'company',
+  keyPath: 'name',
+  type: 'TEXT'
+};
+</code></pre>
+
+    <p>Additionally, the value of ‘company’ attribute in the ‘author’ record is restricted to valid primary key of company records. This consistency has to be inforce by the application. In the future version, the library may add such foreign key relationship enforcement.  </p>
+
+    <pre><code>schema = {
+  stores: [author_store_schema, company_store_schema]
+};
+
+db = new ydn.db.Storage('test-2', schema);
+db.put('company', companies);
+db.count(['author', 'company']).done(function(cnts) {
+  console.log(cnts[0] + ' authors and ' + cnts[1] + ' companies.');
+});
+</code></pre>
+
+    <p>We can query the relationship from both direction. To query authors on particular company:</p>
+
+    <pre><code>db.values('author', 'company', ydn.db.KeyRange.only('Google'), 10).done(function(authors) {
+  console.log(authors);
+});
+</code></pre>
+
+    <h3 id="one-to-one-relationship">One-to-one relationship</h3>
+
+    <p>One to one relationships are essentially a special-case of one to many relationships. Like one to many relationships, they are usually accomplished with a reference primary key on one side referring to the other object store.</p>
+
+    <h3 id="parent-child-relationship">Parent-child relationship</h3>
+
+    <p>Parent child relationship is in face one to many relationships. To enforce, parent-child relationship, we can use array keyPath in child object store. The primary key of the child record consists primary key of parent object store and child id. The following ‘article’ child store schema illustrate parent-child relationship with ‘author’ store.        </p>
+
+    <pre><code>blog_schema = {
+  stores: [{
+    name: 'author',
+    keyPath: 'email'
+  }, {
+    name: 'article',
+    indexes: [{
+      keyPath: 'title'
+    }, {
+      keyPath: 'tag',
+      multiEntry: true
+    }]
+  }]
+};
+</code></pre>
+
+    <p>The ‘author’ store use ‘email’ attribute for in-line primary key. Using email for primary key is smart because email is unique to author. Email is the most likely information we know and query. <em>Data type</em> of ‘TEXT’ is given to primary key by using type <em>schema attribute</em>. It is not used in IndexedDB, but used in WebSQL. In fact, it is required to perform native SQL query.</p>
+
+    <p>The ‘article’ store do not specified keyPath schema attribute and hence it must use out-of-line key. The primary key type is specified as an array of two ‘TEXT’. It uses array because it has two parts. Its first element is primary key of ‘author’ store (‘email’) and the second element is ‘article’ ‘title’. This key construction enforces that ‘article’ must has one ‘author’ and a unique title for each author. ‘author’ store is called <em>parent store</em> and ‘article’ store is called <em>child store</em>.</p>
+
+    <p>‘title’ of ‘article’ attribute is indexed and hence it becomes <em>index key</em>. Like primary key, index key can be used to retrieve the record directly. Unlike primary key, index key is not necessary to be unique. However unique integrity is desired, it can be enforced by unique schema attribute. </p>
+
+    <p>‘tag’ is <em>listed index</em> because its <code>multiEntry</code> schema attribute set to true. Listed index field value must be an array, otherwise it will not be indexed. Listed index field value are indexed element-wise. Here is sample data:</p>
+
+    <pre><code>author1 = {
+  first: 'Micheal',
+  last: 'Bolin',
+  email: 'bolinfest@gmail.com'
+};
+author2 = {
+first: 'Kyle',
+last: 'Huey',
+email: 'me@kylehuey.com' 
+}
+article1 = {
+  title: 'Inheritance Patterns in JavaScript',
+  url: 'http://bolinfest.com/javascript/inheritance.php',
+  tag: ['javascript', 'design pattern', 'closure tools']
+}
+article2 = {
+  title: 'Writing useful JavaScript applications in less than half the size of jQuery',
+  url: 'http://blog.bolinfest.com/2011_07_01_archive.html',
+  tag: ['javascript', 'closure tools', 'jquery']
+}
+article3 = {
+  title: 'Fixing the Memory Leak',
+  url: 'http://blog.kylehuey.com/post/21892343371/fixing-the-memory-leak',
+  tag: ['browser', 'firefox', 'memory']
+}
+article4 = {
+  title: 'Pushing Compilers to the Limit (and Beyond)',
+  url: 'http://blog.kylehuey.com/post/14453464655/pushing-compilers-to-the-limit-and-beyond',
+  tag: ['javascript', 'firefox', 'performance', 'jit']
+}
+</code></pre>
+
+    <p>Create a new database and insert them.</p>
+
+    <pre><code>blog_db = new ydn.db.Storage('blog', blog_schema);
+blog_db.put('author', [author1, author2]);
+blog_db.put('article', article1, [author1.email, article1.title]);
+blog_db.put('article', article2, [author1.email, article2.title]);
+blog_db.put('article', article3, [author2.email, article3.title]);
+blog_db.put('article', article4, [author2.email, article4.title]);
+</code></pre>
+
+    <p>Notice how out-of-line keys are constructed for ‘article’ store. This database library should automatically generated such parent-child relationship key.</p>
+
+    <p>Let us query how many ‘javascript’ articles.</p>
+
+    <pre><code>blog_db.count('article', 'tag', ydn.db.KeyRange.only('javascript')).done(function(count) {
+  console.log(count)
+})
+</code></pre>
+
+    <p>Here list article ‘title’ by Micheal Bolin in the database.</p>
+
+    <pre><code>blog_db.keys('article', ydn.db.KeyRange.starts(['bolinfest@gmail.com'])).done(function(keys) {
+  for (var i = 0; i &lt; keys.length; i++) {
+    console.log(keys[i][1]);
+  }
+});
+</code></pre>
+
+    <p>The following code snippet query primary keys sorted by index key ‘title’.</p>
+
+    <pre><code>blog_db.keys('article', 'title').done(function(keys) {
+  for (var i = 0; i &lt; keys.length; i++) {
+    console.log(keys[i][1]);
+  }
+});
+</code></pre>
+
+    <p>Many-to-many relationship</p>
+
+    <p>Many to many relationships are the most complex to implement in any system, and several solutions are available. The most obvious approach is the same as that used in relational databases: a ‘join table’, which contains pairs of keys from both sides of the relationship.  </p>
+
+    <pre><code>friendship_store_schema = {
+  name: 'friendship',
+  indexes: [
+    {
+      keyPath: 'author1'
+    }, {
+      keyPath: 'author2'
+  }]
+};
+</code></pre>
+
+    <p>Another approach is to have one side of the relationship store a list of the keys of records on the other side of the relationship. This makes the most sense when the cardinality on one side is limited (say, to a few hundred or less), when there is a natural ‘owner’ of the relationship, or when you want to be able to easily update the list of referenced entities in bulk.</p>
+
+    <p>This is illustrated by relationship between ‘topic’ and ‘article’ stores.    </p>
+
+    <pre><code>topic_store_schema = {
+  name: 'topic',
+  keyPath: 'name'
+};
+article_store_schema = {
+  name: 'article'
+  indexes: [
+    {
+      keyPath: 'title'
+    }, {
+      keyPath: 'publish'
+    }, {
+      keyPath: 'license'
+    }, {
+      keyPath: 'publisher'
+    }, {
+      keyPath: 'topics',
+      multiEntry: true
+  }]
+};
+</code></pre>
+
+    <p>In the fugure, the library intent to provide relationships by annotating with the following keywords in the schema.                          </p>
+
+  </div></div>
+
+
+      <div class="container clear-both">
+        <div class="content">
+
+          <div class="container-medium">
+  <nav class="article-nav">
+  
+  
+    <a class="article-nav-link article-nav-link--next" title="Next article" href="/ydn-db/doc/usage/transaction.html" style="float: right;">
+      Next 'Transaction'
+    </a>
+  
+  </nav>
+</div>
+
+
+          <br /><div class="g-comments" data-href="/ydn-db/ydn-db/using/relationships.html"></div>
+        </div>
+      </div>
+
+
+
+      
+        
+
+
+
+
+
+      
+      
+
+
+<script src="/jsc/ydn.db-dev.js"></script>
+
+    </div> <!-- /.article-container -->
+    <div class="container clear">
+	<div id="gc-content-license" class="gc-content-license g-wide--3 g-wide--last" >
+		
+		<div class="container clear">
+	<div class="g-wide--3 g-wide--last">
+    
+		<h4>Authors</h4>
+		
+		
+    <a href="/resources/contributors/index.html#kyawtun">
+      Kyaw Tun</a>
+		
+    
+	</div>
+</div>
+
+	</div>
+</div>
+
+    <footer class="main-footer">
+  <div class="main-footer__container container clear">
+    <div class="main-footer__list-group">
+      <ul class="main-footer__list main-footer__list--primary">
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--<strong>ydn-db</strong>  sitemap__item--home  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/index.html" title="Go to <strong>YDN-DB</strong>">
+            <strong>YDN-DB</strong>
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--download  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/downloads.html" title="Go to Download">
+            Download
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--documentation  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/doc/index.html" title="Go to Documentation">
+            Documentation
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--api  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/api/ydn/db/storage.html" title="Go to API">
+            API
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--examples  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="//dev.yathit.com/ydn-db/doc/example/index.html" title="Go to Examples">
+            Examples
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--github  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="https://github.com/yathit/ydn-db" title="Go to GitHub">
+            GitHub
+          </a>
+        </li>
+        
+      
+      </ul>
+
+      <div class="main-footer__google-section">
+        <h3 class="main-footer__title"><a href="/ydn-db/">
+          <img id="developers-logo-footer" src="/imgs/yathit-dev-network.svg" alt="Yathit Developer Network logo">
+        </a></h3>
+        <ul class="main-footer__list main-footer__list--secondary google-list">
+          <li><a href="https://www.yathit.com/">Yathit</a></li>
+          <li><a href="https://www.yathit.com/terms.html">Terms of Service</a></li>
+          <li><a href="https://www.yathit.com/privacy.html">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    <script src="/jsc/prettify.js"></script>
+
+    
+<script src="/js/script.js"></script>
+<script src="/jsc/website-app.js"></script>
+<script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+
+
+
+
+
+  </body>
+</html>
+

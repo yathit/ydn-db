@@ -1,0 +1,612 @@
+
+<!DOCTYPE html>
+<html lang="en" class="no-js no-touch">
+  <head>
+
+    <link type="text/css" rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro">
+    
+<meta charset="utf-8" />
+
+
+<title>
+  
+    Synchronizing with a RESTful service
+  
+</title>
+
+
+
+
+
+<meta name="author" content="https://plus.google.com/+KyawTun-Yathit/posts" />
+
+
+
+<meta name="description" content="Synchronization" />
+
+
+<link rel="icon" href="/favicon.ico" />
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta id="viewport" name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="twitter:card" content="summary">
+<meta property="twitter:account_id" content="@yathit" />
+<meta property="twitter:site" content="@yathit" />
+<meta property="twitter:description" content="Synchronization" />
+<meta property="twitter:creator" content="@yathit" />
+<meta property="twitter:image:src" content="/ydn-db/imgs/logo.png" />
+
+
+<link rel="author" href="https://plus.google.com/+KyawTun-Yathit/posts">
+<link rel="publisher" href="https://plus.google.com/+KyawTun-Yathit">
+
+<meta itemprop="name" content="
+  
+    Synchronizing with a RESTful service
+  
+">
+<link itemprop="image" href="/imgs/logo.png">
+<meta itemprop="description" content="Synchronization">
+
+<meta property="og:site_name" content="Yathit" />
+<meta property="og:title" content="
+  
+    Synchronizing with a RESTful service
+  
+" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="/ydn-db/" />
+<meta property="og:image" content="/ydn-db/imgs/logo.png" />
+
+<link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/iccdnijlhdogaccaiafdpjmbakdcdakk">
+<link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/ldikiokclnbceabnlbkabmcacpiednop">
+
+<link rel="stylesheet" media="screen" href="/css/styles.min.css" />
+
+<script src="/js/analytics.js"></script>
+
+  </head>
+
+  <body class="page-doc page--article article--ydndb-sync theme--ydndb-sync" itemscope itemtype="http://schema.org/TechArticle">
+    
+
+    <header class="main-header">
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<nav class="main-nav">
+
+  <header class="main-nav__header">
+    <span class="main-nav__current-label">Synchronizing with a RESTful service</span>
+  </header>
+
+  <ul class="main-nav__list clear">
+  
+    
+    
+    <li class="main-nav__item main-nav__item--<strong>ydn-db</strong>
+                main-nav__item--home 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/index.html" title="Go to <strong>YDN-DB</strong>">
+
+        <strong>YDN-DB</strong>
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--download
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/downloads.html" title="Go to Download">
+
+        Download
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--documentation
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/doc/index.html" title="Go to Documentation">
+
+        Documentation
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--api
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/api/ydn/db/storage.html" title="Go to API">
+
+        API
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--examples
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="//dev.yathit.com/ydn-db/doc/example/index.html" title="Go to Examples">
+
+        Examples
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--github
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="https://github.com/yathit/ydn-db" title="Go to GitHub">
+
+        GitHub
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+
+  <li class="main-nav__item right">
+    <a class="main-nav__link main-nav__link--parent" id="user-login">...</a>
+  </li>
+  <li class="main-nav__item right">
+    <span class="main-nav__link main-nav__link--parent" id="user-name" style="display: none;"></span>
+  </li>
+
+  </ul>
+  <button class="main-nav__btn btn--toggle-nav">
+    <i class="icon icon-menu"></i>
+  </button>
+
+</nav>
+
+
+</header>
+
+
+    <div class="article-container" itemprop="text">
+
+       <div class="ydn-breadcrumb-before"></div>
+        <div class="container">
+           <div class="content">
+             <div id="ydn-breadcrumb" name="ydndb-doc"></div>
+           </div>
+        </div>
+        <div class="ydn-breadcrumb-after"></div>
+
+      <div class="editorial-header">
+        <div class="container">
+          <div class="content">
+
+            <h1 class="editorial-header__title"></h1>
+            <h2 class="editorial-header__subtitle" itemprop="name">Synchronizing with a RESTful service</h2>
+
+            <p class="editorial-header__excerpt" itemprop="headline">Automatically synchronize browser database with RESTful web service including AWS S3 and Google Cloud Storage.</p>
+
+          </div>
+        </div>
+      </div>
+
+
+      <div class="container"><div class="content ">
+
+    <blockquote>
+      <p>This article refer to old <code>sync</code> module. See <a href="entity.html">Entity</a> for new way of synchronization.</p>
+    </blockquote>
+
+    <p>Synchronizing client database and backend RESTful server is fairly straight forwards. To archive efficient synchronization, the implementation is require more on server side than on client side. To facilitate client side data caching, HTTP protocol provide two (four methods) request header. Basically the state of the data is identified by either etag or updated date or both. If etag is used, a GET request include <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26">If-None-Match</a> header of know etag value from the client side data. Server return 304 without response body if the data not changed. For modification requests, <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.24">If-Match</a> header is used to prevent overriding wrong version of a resource. The use case of modified date is similar.</p>
+
+    <p>A synchronization layer is required on top of CRUD methods (add, get, put, clear). The example <a href="https://github.com/yathit/backbone-indexeddb-sync">synchronization adapter</a> is available on Github repository for Backbone framework on Google API backend. </p>
+
+    <p>To notify changes in the database, storage instance dispatch StoreEvent and RecordEvent for changes in the database. The events are not dispatch by default because eventing implementation is not cheap. The desire store must installed to dispatch the events by setting <code>dispatchEvents</code> to <code>true</code>.</p>
+
+    <pre><code>var events_schema = {
+  stores: [
+    {
+      name: 'store 1',
+      keyPath: 'id',
+      dispatchEvents: true,
+      type: 'NUMERIC'}
+  ]};
+</code></pre>
+
+    <p>The events are listened as follow:</p>
+
+    <pre><code>db.addEventListener(['created', 'updated'], function(e) {
+    console.log(e.name); // this will be either 'RecordEvent' or 'StoreEvent'
+    console.log(e.getStoreName());
+    console.log(e.type); // this will be one of 'created', 'updated' or 'deleted'
+    // use getKey() and getValue() methods for RecordEvent
+    // use getKeys() and getValues() methods for StoreEvent
+});
+</code></pre>
+
+    <p>However to achieve efficiency in synchronization of collection of models, it is not straight forward because HTTP (and REST) do not said about conditional retrieval of collection of documents. A usual way is fetching with query parameter of last updated time in the client side. A demonstration of efficient retrieval using Google Data API (atom format) is available in the repository.</p>
+
+    <p>The following example use <a href="https://checkvist.com/auth/api">Checkvist Open API</a>, which follow REST principles for obtaining and updating
+the data. Currently the API does not expose medata data on entity request header. For entity ‘checklists’, the resource URI and sample data for key
+190078 is:</p>
+
+    <pre><code>https://beta.checkvist.com/checklists/190078.json&lt;/pre&gt;
+      &lt;pre&gt;{
+  id: 190078
+  name: "test sync app"
+  public: false
+  updated_at: "2013/06/08 22:57:09 +0000"
+  user_count: 1
+  user_updated_at: null
+}
+</code></pre>
+
+    <p><a href="/ydn-db/api/ydn/db/schema.html#sync">Store schema</a> is declared as follow: </p>
+
+    <pre><code>var schema = {
+stores: [{
+  name: 'checklists',
+  keyPath: 'id',
+  Sync: {
+    format: 'json',
+    transport: service,
+    Options: {
+      baseUri: '/',
+      delimiter: '/'
+    }
+  }
+}]   };
+</code></pre>
+
+    <p>The <code>Sync</code> attribute value specify synchronization information of the store. HTTP requests are made by HTTP transport
+  service object specified by <code>transport</code> attribute in <code>Sync</code> options. A HTTP transport service is an object which has a method of <code>request</code>,
+  which take argument object having fields of</p>
+
+    <ul>
+      <li>path - type: string: The URL to handle the request.</li>
+      <li>method - type: string: The HTTP request method to use. Default is
+  ‘GET’.</li>
+      <li>params - type: Object: URL params in key-value pair form.</li>
+      <li>headers - type: Object: Additional HTTP request headers.</li>
+      <li>body - type: string: The HTTP request body (applies to PUT or POST).</li>
+      <li>callback - type: Function: HTTP response object having the following
+  fields described below.</li>
+    </ul>
+
+    <p>Response object has the following fields</p>
+
+    <ul>
+      <li>url - type: string: The input URL.</li>
+      <li>status - type: string: HTTP response status.</li>
+      <li>contentType - type: string: HTTP response content type.</li>
+      <li>reponseText - type: string: HTTP response text.</li>
+      <li>response - type: Object: HTTP response.</li>
+    </ul>
+
+    <p>It is similar to as defined in <a href="https://code.google.com/p/google-api-javascript-client/wiki/ReferenceDocs">Google Javascript client library</a>.</p>
+
+    <p>The following code snippet show how to make HTTP transport service:</p>
+
+    <pre><code>/**
+ * Send request to checkvist server.
+ * @link https://developers.google.com/api-client-library/javascript/reference/referencedocs#gapiclientrequest
+ * @param {Object} args request arguments, compatible with Google javascript
+ * client library.
+ */
+CheckvistApp.prototype.request = function(args) {
+  var path = args.path;
+  var method = args.method || 'GET';
+  var params = args.params || {};
+  params['username'] = this.session.username;
+  if (this.session.token) {
+    params['token'] = this.session.token;
+  }
+  var host = 'beta.checkvist.com';
+  var url = 'https://' + host + path + '.json';
+  var query = [];
+  for (var q in params) {
+    query.push(q + '=' + encodeURIComponent(params[q]));
+  }
+  url += '?' + query.join('&amp;amp;');
+  var req = new XMLHttpRequest();
+  req.open(method, url, false);
+  // req.withCredentials = true;
+  var me = this;
+  req.onload = function(e) {
+    var raw = {
+      body: req.responseText,
+      status: req.status,
+      statusText: req.statusText,
+      headers: {}
+    };
+
+    var header_lines = req.getAllResponseHeaders().split('\n');
+    for (var i = 0; i &amp;lt; header_lines.length; i++) {
+      var idx = header_lines[i].indexOf(':');
+      if (idx &amp;gt; 0) {
+        var name = header_lines[i].substr(0, idx).toLowerCase();
+        var value = header_lines[i].substr(idx + 1).trim();
+        raw.headers[name] = value;
+      }
+    }
+
+    args.callback(JSON.parse(req.responseText), raw);
+  };
+  console.info('sending ' + url);
+  req.send();
+};
+</code></pre>
+
+    <p>A complete offline application can be found <a href="/ydn-db/demo/checkvist/checkvist-sync.html">Checkvist sync demo app</a>.</p>
+
+    <h3 id="synchronizing-with-ydn-db">Synchronizing with YDN-DB</h3>
+
+    <p>YDN-DB have build in synchronization support for AWS S3 (<a href="http://aws.amazon.com/documentation/s3/">Amazon
+  simple storage service</a>), <a href="http://www.ietf.org/rfc/rfc4287.txt">ATOM
+  syndicate format</a>, <a href="http://odata.org/">OData</a>, 
+  <a href="https://developers.google.com/gdata/">GData</a>, GCS (<a href="https://developers.google.com/storage/">Google cloud storage</a>).</p>
+
+    <pre><code>var schema = {
+  stores: [
+    {
+      name: 'st',
+      Sync: {
+        format: 's3'
+        transport: gapi.client
+      }
+    }
+  ]
+};
+</code></pre>
+
+  </div></div>
+
+
+      <div class="container clear-both">
+        <div class="content">
+
+          <div class="container-medium">
+  <nav class="article-nav">
+  
+    <a class="article-nav-link article-nav-link--prev" title="Previous article" href="/ydn-db/doc/sync/build-in.html">
+      Previous 'Synchronizing with AWS S3 like backend'
+    </a>
+  
+  
+  </nav>
+</div>
+
+
+          <br /><div class="g-comments" data-href="/ydn-db/ydn-db/synchronization.html"></div>
+        </div>
+      </div>
+
+
+
+      
+        
+
+
+
+
+
+      
+      
+
+
+<script src="/jsc/ydn.db-dev.js"></script>
+
+    </div> <!-- /.article-container -->
+    <div class="container clear">
+	<div id="gc-content-license" class="gc-content-license g-wide--3 g-wide--last" >
+		
+		<div class="container clear">
+	<div class="g-wide--3 g-wide--last">
+    
+		<h4>Authors</h4>
+		
+		
+    <a href="/resources/contributors/index.html#kyawtun">
+      Kyaw Tun</a>
+		
+    
+	</div>
+</div>
+
+	</div>
+</div>
+
+    <footer class="main-footer">
+  <div class="main-footer__container container clear">
+    <div class="main-footer__list-group">
+      <ul class="main-footer__list main-footer__list--primary">
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--<strong>ydn-db</strong>  sitemap__item--home  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/index.html" title="Go to <strong>YDN-DB</strong>">
+            <strong>YDN-DB</strong>
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--download  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/downloads.html" title="Go to Download">
+            Download
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--documentation  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/doc/index.html" title="Go to Documentation">
+            Documentation
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--api  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/api/ydn/db/storage.html" title="Go to API">
+            API
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--examples  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="//dev.yathit.com/ydn-db/doc/example/index.html" title="Go to Examples">
+            Examples
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--github  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="https://github.com/yathit/ydn-db" title="Go to GitHub">
+            GitHub
+          </a>
+        </li>
+        
+      
+      </ul>
+
+      <div class="main-footer__google-section">
+        <h3 class="main-footer__title"><a href="/ydn-db/">
+          <img id="developers-logo-footer" src="/imgs/yathit-dev-network.svg" alt="Yathit Developer Network logo">
+        </a></h3>
+        <ul class="main-footer__list main-footer__list--secondary google-list">
+          <li><a href="https://www.yathit.com/">Yathit</a></li>
+          <li><a href="https://www.yathit.com/terms.html">Terms of Service</a></li>
+          <li><a href="https://www.yathit.com/privacy.html">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    <script src="/jsc/prettify.js"></script>
+
+    
+<script src="/js/script.js"></script>
+<script src="/jsc/website-app.js"></script>
+<script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+
+
+
+
+
+  </body>
+</html>
+

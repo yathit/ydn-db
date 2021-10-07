@@ -1,0 +1,561 @@
+
+<!DOCTYPE html>
+<html lang="en" class="no-js no-touch">
+  <head>
+
+    <link type="text/css" rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro">
+    
+<meta charset="utf-8" />
+
+
+<title>
+  
+    Key
+  
+</title>
+
+
+
+
+
+<meta name="author" content="https://plus.google.com/+KyawTun-Yathit/posts" />
+
+
+
+<meta name="description" content="Database Key" />
+
+
+<link rel="icon" href="/favicon.ico" />
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta id="viewport" name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="twitter:card" content="summary">
+<meta property="twitter:account_id" content="@yathit" />
+<meta property="twitter:site" content="@yathit" />
+<meta property="twitter:description" content="Database Key" />
+<meta property="twitter:creator" content="@yathit" />
+<meta property="twitter:image:src" content="/ydn-db/imgs/logo.png" />
+
+
+<link rel="author" href="https://plus.google.com/+KyawTun-Yathit/posts">
+<link rel="publisher" href="https://plus.google.com/+KyawTun-Yathit">
+
+<meta itemprop="name" content="
+  
+    Key
+  
+">
+<link itemprop="image" href="/imgs/logo.png">
+<meta itemprop="description" content="Database Key">
+
+<meta property="og:site_name" content="Yathit" />
+<meta property="og:title" content="
+  
+    Key
+  
+" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="/ydn-db/" />
+<meta property="og:image" content="/ydn-db/imgs/logo.png" />
+
+<link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/iccdnijlhdogaccaiafdpjmbakdcdakk">
+<link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/ldikiokclnbceabnlbkabmcacpiednop">
+
+<link rel="stylesheet" media="screen" href="/css/styles.min.css" />
+
+<script src="/js/analytics.js"></script>
+
+  </head>
+
+  <body class="page-doc page--article article--ydndb-setup theme--ydndb-setup" itemscope itemtype="http://schema.org/TechArticle">
+    
+
+    <header class="main-header">
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<nav class="main-nav">
+
+  <header class="main-nav__header">
+    <span class="main-nav__current-label">Key</span>
+  </header>
+
+  <ul class="main-nav__list clear">
+  
+    
+    
+    <li class="main-nav__item main-nav__item--<strong>ydn-db</strong>
+                main-nav__item--home 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/index.html" title="Go to <strong>YDN-DB</strong>">
+
+        <strong>YDN-DB</strong>
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--download
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/downloads.html" title="Go to Download">
+
+        Download
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--documentation
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/doc/index.html" title="Go to Documentation">
+
+        Documentation
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--api
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/api/ydn/db/storage.html" title="Go to API">
+
+        API
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--examples
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="//dev.yathit.com/ydn-db/doc/example/index.html" title="Go to Examples">
+
+        Examples
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--github
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="https://github.com/yathit/ydn-db" title="Go to GitHub">
+
+        GitHub
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+
+  <li class="main-nav__item right">
+    <a class="main-nav__link main-nav__link--parent" id="user-login">...</a>
+  </li>
+  <li class="main-nav__item right">
+    <span class="main-nav__link main-nav__link--parent" id="user-name" style="display: none;"></span>
+  </li>
+
+  </ul>
+  <button class="main-nav__btn btn--toggle-nav">
+    <i class="icon icon-menu"></i>
+  </button>
+
+</nav>
+
+
+</header>
+
+
+    <div class="article-container" itemprop="text">
+
+       <div class="ydn-breadcrumb-before"></div>
+        <div class="container">
+           <div class="content">
+             <div id="ydn-breadcrumb" name="ydndb-doc"></div>
+           </div>
+        </div>
+        <div class="ydn-breadcrumb-after"></div>
+
+      <div class="editorial-header">
+        <div class="container">
+          <div class="content">
+
+            <h1 class="editorial-header__title"></h1>
+            <h2 class="editorial-header__subtitle" itemprop="name">Key</h2>
+
+            <p class="editorial-header__excerpt" itemprop="headline">Designing key is an important design decision.</p>
+
+          </div>
+        </div>
+      </div>
+
+
+      <div class="container"><div class="content ">
+
+    <h2 id="database-key">Database Key</h2>
+
+    <p>An <a href="schema.html#ydn-db-store-schema">object store</a> stores records which consists of key (primary key) and value. In addition to primary key, object store optionally index secondary keys. How these keys are extracted from the record value is defined in <a href="schema.html">database schema</a>. Keys are important for efficient querying and are carefully constructed.</p>
+
+    <p><a href="http://www.w3.org/TR/IndexedDB/#key-construct">Valid key</a> is one of <code>Number</code>, <code>String</code>, <code>Date</code> object or <code>Array</code> consisting elements of valid key. When keys of different types are compared, <code>Array</code> is greater than <code>String</code>, which is greater than <code>Date</code> and <code>Date</code> is greater than <code>Number</code>.</p>
+
+    <h3 id="keyrange">KeyRange</h3>
+
+    <p>Records can be retrieved from object stores and indexes using either keys or <a href="http://www.w3.org/TR/IndexedDB/#range-concept">key ranges</a>. A key range is a continuous segment of keys defined by interval by using lower and upper bound, or unbounded.    </p>
+
+    <p>To retrieve all keys within a certain interval, you can construct a key range as follow:  </p>
+
+    <table class="gridtable">
+  <thead>
+  <tr>
+    <th>Range</th>
+    <th>Code</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td>All keys ? <strong>x</strong></td>
+    <td><code>ydn.db.KeyRange.upperBound(<strong>x</strong>)</code> </td>
+  </tr>
+  <tr>
+    <td>All keys &lt; <strong>x</strong></td>
+    <td><code>ydn.db.KeyRange.upperBound(<strong>x</strong>, true) </code>
+    </td>
+  </tr>
+  <tr>
+    <td>All keys ? <strong>y</strong></td>
+    <td><code>ydn.db.KeyRange.lowerBound(<strong>y</strong>)</code> </td>
+  </tr>
+  <tr>
+    <td>All keys &gt; <strong>y</strong></td>
+    <td><code>ydn.db.KeyRange.lowerBound(<strong>y</strong>, true)</code></td>
+  </tr>
+  <tr>
+    <td>All keys &ge; <strong>x</strong> &le; <strong>y</strong></td>
+    <td><code>ydn.db.KeyRange.bound(<strong>x</strong>, <strong>y</strong>)</code></td>
+  </tr>
+  <tr>
+    <td>All keys &gt; <strong>x</strong> &lt; <strong>y</strong></td>
+    <td><code>ydn.db.KeyRange.bound(<strong>x</strong>, <strong>y</strong>,
+      true, true)</code></td>
+  </tr>
+  <tr>
+    <td>All keys &gt; <strong>x</strong> &ge; <strong>y</strong></td>
+    <td><code>ydn.db.KeyRange.bound(<strong>x</strong>, <strong>y</strong>,
+      true, false)</code></td>
+  </tr>
+  <tr>
+    <td>All keys &le; <strong>x</strong> &lt; <strong>y</strong></td>
+    <td><code>ydn.db.KeyRange.bound(<strong>x</strong>, <strong>y</strong>,
+      false, true)</code></td>
+  </tr>
+  <tr>
+    <td>The key = <strong>z</strong></td>
+    <td><code>ydn.db.KeyRange.only(<strong>z</strong>)</code></td>
+  </tr>
+  <tr>
+    <td>All (string or array) keys start with <strong>a</strong></td>
+    <td><code>ydn.db.KeyRange.starts(<strong>a</strong>)</code></td>
+  </tr>
+  </tbody>
+</table>
+
+    <p>For example, the key range starts with <code>[123]</code> comprises all keys of Array value with first element is <code>123</code>. For example <code>[123]</code>, <code>[123, -1]</code>, <code>[123, 'a']</code>, etc are part of the key range.</p>
+
+    <p>Curious reader will notice key range starts with integer has special interest. For example, <code>ydn.db.KeyRange.starts(2)</code> comprises not only 2 but a range bounded by <code>2 - Number.EPSILON</code> and <code>2 + Number.EPSILON</code>.  </p>
+
+    <h2 id="nested-set-model">Nested set model</h2>
+
+    <p>The <a href="http://en.wikipedia.org/wiki/Nested_set_model">nested set model</a> is a particular technique for representing nested sets (also known as trees or hierarchies) in relational databases. Similarly Google appengine has <a href="https://developers.google.com/appengine/docs/python/datastore/keyclass">hierarchy key structure</a> and AWS DynamoDB has <a href="http://aws.amazon.com/blogs/aws/local-secondary-indexes-for-amazon-dynamodb/">local secondary index</a> key model. Key is constructed in such a way that parent key is in prefix resulting querying them becomes inexpensive. Parent-child and one-to-many relationship can be represent by such key structure.</p>
+
+    <p>For example, to store product in category:</p>
+
+    <pre><code>var computer_123 = {
+  id: 123,
+  category: 'hardware/electronic/computer/laptop/'
+};
+</code></pre>
+
+    <p>We can query all computers by:</p>
+
+    <pre><code>var key_range = ydn.db.KeyRange.starts('hardware/electronic/computer/');
+db.values('product', 'category', key_range);
+</code></pre>
+
+    <p>YDN-DB provides <a href="/ydn-db/api/ydn/db/key.html">Key model</a> that support hierarchical key structure.</p>
+
+    <p>Key of <code>Array</code> type are useful for creating such hierarchical key structure. </p>
+
+    <p>Suppose we have <code>Address</code> object store, which belong to <code>Employee</code> object store,</p>
+
+    <pre><code>var employee_123 = {
+  id: 123,
+  name: 'Foo Bar'
+};
+var address_123_1 = {
+  id: [employee_123.id, 1]
+  street: 'Street 1'
+}
+</code></pre>
+
+    <p>Notice that we can efficiently retrieve all addresses belong to employee by following <em>key range</em> query:</p>
+
+    <pre><code>var key_range = ydn.db.KeyRange.starts([employee_123.id]);
+db.values('Address', key_range);
+</code></pre>
+
+  </div></div>
+
+
+      <div class="container clear-both">
+        <div class="content">
+
+          <div class="container-medium">
+  <nav class="article-nav">
+  
+    <a class="article-nav-link article-nav-link--prev" title="Previous article" href="/ydn-db/doc/setup/schema.html">
+      Previous 'Schema'
+    </a>
+  
+  
+    <a class="article-nav-link article-nav-link--next" title="Next article" href="/ydn-db/doc/setup/events.html" style="float: right;">
+      Next 'Events'
+    </a>
+  
+  </nav>
+</div>
+
+
+          <br /><div class="g-comments" data-href=""></div>
+        </div>
+      </div>
+
+
+
+      
+        
+
+
+
+
+
+      
+      
+
+
+<script src="/jsc/ydn.db-dev.js"></script>
+
+    </div> <!-- /.article-container -->
+    <div class="container clear">
+	<div id="gc-content-license" class="gc-content-license g-wide--3 g-wide--last" >
+		
+		<div class="container clear">
+	<div class="g-wide--3 g-wide--last">
+    
+		<h4>Authors</h4>
+		
+		
+    <a href="/resources/contributors/index.html#kyawtun">
+      Kyaw Tun</a>
+		
+    
+	</div>
+</div>
+
+	</div>
+</div>
+
+    <footer class="main-footer">
+  <div class="main-footer__container container clear">
+    <div class="main-footer__list-group">
+      <ul class="main-footer__list main-footer__list--primary">
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--<strong>ydn-db</strong>  sitemap__item--home  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/index.html" title="Go to <strong>YDN-DB</strong>">
+            <strong>YDN-DB</strong>
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--download  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/downloads.html" title="Go to Download">
+            Download
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--documentation  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/doc/index.html" title="Go to Documentation">
+            Documentation
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--api  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/api/ydn/db/storage.html" title="Go to API">
+            API
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--examples  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="//dev.yathit.com/ydn-db/doc/example/index.html" title="Go to Examples">
+            Examples
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--github  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="https://github.com/yathit/ydn-db" title="Go to GitHub">
+            GitHub
+          </a>
+        </li>
+        
+      
+      </ul>
+
+      <div class="main-footer__google-section">
+        <h3 class="main-footer__title"><a href="/ydn-db/">
+          <img id="developers-logo-footer" src="/imgs/yathit-dev-network.svg" alt="Yathit Developer Network logo">
+        </a></h3>
+        <ul class="main-footer__list main-footer__list--secondary google-list">
+          <li><a href="https://www.yathit.com/">Yathit</a></li>
+          <li><a href="https://www.yathit.com/terms.html">Terms of Service</a></li>
+          <li><a href="https://www.yathit.com/privacy.html">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    <script src="/jsc/prettify.js"></script>
+
+    
+<script src="/js/script.js"></script>
+<script src="/jsc/website-app.js"></script>
+<script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+
+
+
+
+
+  </body>
+</html>
+

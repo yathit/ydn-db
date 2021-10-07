@@ -1,0 +1,562 @@
+
+<!DOCTYPE html>
+<html lang="en" class="no-js no-touch">
+  <head>
+
+    <link type="text/css" rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro">
+    
+<meta charset="utf-8" />
+
+
+<title>
+  
+    Key joining
+  
+</title>
+
+
+
+
+
+<meta name="author" content="https://plus.google.com/+KyawTun-Yathit/posts" />
+
+
+
+<meta name="description" content="NoSQL query" />
+
+
+<link rel="icon" href="/favicon.ico" />
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta id="viewport" name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="twitter:card" content="summary">
+<meta property="twitter:account_id" content="@yathit" />
+<meta property="twitter:site" content="@yathit" />
+<meta property="twitter:description" content="NoSQL query" />
+<meta property="twitter:creator" content="@yathit" />
+<meta property="twitter:image:src" content="/ydn-db/imgs/logo.png" />
+
+
+<link rel="author" href="https://plus.google.com/+KyawTun-Yathit/posts">
+<link rel="publisher" href="https://plus.google.com/+KyawTun-Yathit">
+
+<meta itemprop="name" content="
+  
+    Key joining
+  
+">
+<link itemprop="image" href="/imgs/logo.png">
+<meta itemprop="description" content="NoSQL query">
+
+<meta property="og:site_name" content="Yathit" />
+<meta property="og:title" content="
+  
+    Key joining
+  
+" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="/ydn-db/" />
+<meta property="og:image" content="/ydn-db/imgs/logo.png" />
+
+<link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/iccdnijlhdogaccaiafdpjmbakdcdakk">
+<link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/ldikiokclnbceabnlbkabmcacpiednop">
+
+<link rel="stylesheet" media="screen" href="/css/styles.min.css" />
+
+<script src="/js/analytics.js"></script>
+
+  </head>
+
+  <body class="page-doc page--article article--ydndb-query theme--ydndb-query" itemscope itemtype="http://schema.org/TechArticle">
+    
+
+    <header class="main-header">
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<nav class="main-nav">
+
+  <header class="main-nav__header">
+    <span class="main-nav__current-label">Key joining</span>
+  </header>
+
+  <ul class="main-nav__list clear">
+  
+    
+    
+    <li class="main-nav__item main-nav__item--<strong>ydn-db</strong>
+                main-nav__item--home 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/index.html" title="Go to <strong>YDN-DB</strong>">
+
+        <strong>YDN-DB</strong>
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--download
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/downloads.html" title="Go to Download">
+
+        Download
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--documentation
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/doc/index.html" title="Go to Documentation">
+
+        Documentation
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--api
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="/ydn-db/api/ydn/db/storage.html" title="Go to API">
+
+        API
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--examples
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="//dev.yathit.com/ydn-db/doc/example/index.html" title="Go to Examples">
+
+        Examples
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+    
+    
+    <li class="main-nav__item main-nav__item--github
+               
+               
+                 
+               
+               
+               ">
+      <a class="main-nav__link main-nav__link--parent" href="https://github.com/yathit/ydn-db" title="Go to GitHub">
+
+        GitHub
+
+        
+        <i class="main-nav__icon icon icon-chevron-right"></i>
+        
+      </a>
+
+      
+
+    </li>
+    
+  
+
+  <li class="main-nav__item right">
+    <a class="main-nav__link main-nav__link--parent" id="user-login">...</a>
+  </li>
+  <li class="main-nav__item right">
+    <span class="main-nav__link main-nav__link--parent" id="user-name" style="display: none;"></span>
+  </li>
+
+  </ul>
+  <button class="main-nav__btn btn--toggle-nav">
+    <i class="icon icon-menu"></i>
+  </button>
+
+</nav>
+
+
+</header>
+
+
+    <div class="article-container" itemprop="text">
+
+       <div class="ydn-breadcrumb-before"></div>
+        <div class="container">
+           <div class="content">
+             <div id="ydn-breadcrumb" name="ydndb-doc"></div>
+           </div>
+        </div>
+        <div class="ydn-breadcrumb-after"></div>
+
+      <div class="editorial-header">
+        <div class="container">
+          <div class="content">
+
+            <h1 class="editorial-header__title"></h1>
+            <h2 class="editorial-header__subtitle" itemprop="name">Key joining</h2>
+
+            <p class="editorial-header__excerpt" itemprop="headline">The indexedDB API provides ordered enumeration of records in a given key range. Join queries are left to the application logic to handle.</p>
+
+          </div>
+        </div>
+      </div>
+
+
+      <div class="container"><div class="content ">
+
+    <p>Filtering is joining on the primary key. The join process will scan index keys, apply the desired filter, and return the matching primary keys as the result. Numerous join algorithms can be found in <a href="#references">database books</a> and review articles.</p>
+
+    <p>The <a href="https://dev.yathit.com/api/ydn/db/storage.html#scan"><code>db.scan</code></a> database operation method is used for both key and value scanning processes.  It accepts a callback routine and array of iterators.  Key iterators are usually preferred over value iterators because of the increased performance.  The callback is invoked on each iteration and controls the advancement of the iterators. The first arguments to the callback is the array of effective index keys for the current iteration.  The second argument is the array of reference values:  primary keys if index iterators are used or record vlaues if avalue iterators are used.  The callback must return an array where each element refers to the advancement of the respective iterator: <code>true</code> to continue next iteration or <code>false</code> to restart the iteration. If any value is given, it is taken as primary key and advance to it within current index key range. If a primary key larger than given key is found, it was returned on the first occurrence.  If the entire return array is empty, <code>db.scan</code> completes.</p>
+
+    <p>In general, the callback can return an object having fields of advance, <code>next_index_keys</code> and <code>next_primary_keys</code>. All three fields are arrays, with each element represent to respective iterator. If element of next_index_keys is a valid key, the cursor advance to it. If element of <code>next_primary_keys</code> is given, the cursor advance to it within given index key or current index key. If element of advance array is given, it must be boolean. true refer to next position and false to rewind the iterator. If all three are given, it starts with rewind, positioning and advancement.</p>
+
+    <p>Available algorithms can be found in <a href="/ydn-db/api/ydn/db/algo.html"><code>ydn.db.algo</code></a> module.</p>
+
+    <h3 id="nested-loop-join">Nested-loop join</h3>
+
+    <p>A naive join algorithm iterates each iterator forming nested loops. And hence it is called nested-loop join algorithm.</p>
+
+    <p>The following snippet filters the <code>license</code> field to ‘SA’ and the <code>publisher</code> to ‘Nature’.  </p>
+
+    <pre><code>match_keys = [];
+var nested_loop = function(keys, values) {
+  // here: keys = index keys, values = primary keys
+  // index 0 refer to license field and index 1 to publisher
+  if (keys[0] != null) {
+    if (values[1] != null &amp;&amp; ydn.db.cmp(values[0], values[1]) == 0) {
+      match_keys.push(values[0]); // we got the matching primary key.
+    } 
+    if (keys[1] != null) {
+      return [null, true]; // iterate on publisher
+    } else {
+      return [true, false]; // iterate on license and restart on publisher
+    }
+  } else {
+    return []; // no more iteration. we are done.
+  }
+};
+
+license_filter = new ydn.db.IndexIterator('article', 'license', ydn.db.KeyRange.only('SA'));
+publisher_filter = new ydn.db.IndexIterator('article', 'publisher', ydn.db.KeyRange.only('Nature'));
+var req = db.scan(nested_loop, [license_filter, publisher_filter]);
+req.then(function() {
+  db.values('article', match_keys).done(function(results) {
+    console.log(results);
+  });
+}, function(e) {
+  throw e;
+});
+</code></pre>
+
+    <p>This first sets up the <code>nested_loop</code> callback and then uses <code>db.scan</code> with the two KeyRange filter iterators.  The callback advances and restarts the iterators in order to make an outer loop of the <code>license</code> index and an inner loop of the <code>publisher</code> index.  The <code>license</code> index iterates through only once, advancing only after iterating through the entire <code>publisher</code> index.  The result is the same if we flip the loop order since joins are commutative, but run time is not the same. This is the subject of query optimization.</p>
+
+    <p>The inner loop result could be cached into the memory. This leads to hash merge algorithm.  </p>
+
+    <h3 id="sorted-merge-join">Sorted-merge join</h3>
+
+    <p>In the above example, we notice that the results of both iterators are sorted in ascending order of the primary key since we held the index key constant. If the results of all filters are sorted, we can advance the iterator skipping keys not in the filter. This makes the sorted join algorithm speed independent of number of records in the object store.   </p>
+
+    <pre><code>match_keys = [];
+var sorted_join = function(keys, values) {
+  if (keys[0] != null &amp;&amp; keys[1] != null) {
+    var cmp = ydn.db.cmp(values[0], values[1]);
+    if (cmp === 1) {
+      return {continuePrimary: [null, values[0]]}; // move publisher to match license
+    } else if (cmp === -1) {
+      return {continuePrimary: [values[1], null]}; // move license to match publisher
+    } else {
+      match_keys.push(values[0]); // we got the matching primary key.
+      return [true, true]; // move forward both
+    } 
+  } else {
+    return []; // no more iteration. we are done.
+  }
+};
+
+license_filter.reset();   // reusing the filters from the previous example
+publisher_filter.reset();
+var req = db.scan(sorted_join, [license_filter, publisher_filter]);
+req.then(function() {
+  db.values('article', match_keys).done(function(results) {
+    console.log(results);
+  });
+}, function(e) {
+  throw e;
+});
+</code></pre>
+
+    <p>There is no nested loop; both indexes are iterated through once.  Notice that the sorted-merge join outperforms the nested-loop join by an order of magnitude. Using a naive nested-loop join in a practical web app is catastrophic.</p>
+
+    <p>We can limit the result size and exit the loop by returning an empty array to the iteration callback. Iterators are resumed if used again, which is how paging is handled in scanning.  It is also why we needed to reset the iterators after they we used int the nested-loop join example.</p>
+
+    <p>The result of sorted-merge join is sorted by primary key. To sort by a specific column field other than primary key, a zigzag-merge join algorithm is used. </p>
+
+    <h3 id="zigzag-merge-join">Zigzag-merge join</h3>
+
+    <p>In sorted merge join, effective key is held constant while joining sorted list of values. In Zigzag merge join, the effective itself comprise both parts. The first part, known as pre-fix is held constant consisting what we want to be filtered. The second parts, known as post-fix is sorted value. The composite index is used to construct post-fix and prefix as required by the query. </p>
+
+    <p>To query <code>SELECT * FROM article WHERE license = 'SA' AND publisher = 'Nature' ORDER BY 'title'</code>, we construct two iterator using composite index of <code>['license', 'title']</code> and <code>['publisher', 'title']</code>. ‘title’ is the postfix we are joining. The ‘license’ prefix is held constant to ‘SA’ and ‘publisher’ prefix is held constant to ‘Nature’ as follow.   </p>
+
+    <pre><code>var license_sa_iter = ydn.db.IndexIterator.where('article', 'license, title', '^', ['SA']);
+var publisher_nature_iter = ydn.db.IndexIterator.where('article', 'publisher, title', '^', ['Nature']);
+var match_keys = [];
+var solver = new ydn.db.algo.ZigzagMerge(match_keys);
+var req = db.scan(solver, [license_sa_iter, publisher_nature_iter]);
+req.then(function() {
+  db.values('article', match_keys).done(function(results) {
+    console.log(results);
+  });
+}, function(e) {
+  throw e;
+}); 
+</code></pre>
+
+    <h3 id="references">References</h3>
+    <ul>
+      <li>Héctor García-Molina, Jeffrey D. Ullman, Jennifer Widom <a href="http://books.google.com.sg/books?id=jOVQAAAAMAAJ">Database System Implementation</a> Prentice Hall, 2000.</li>
+    </ul>
+
+  </div></div>
+
+
+      <div class="container clear-both">
+        <div class="content">
+
+          <div class="container-medium">
+  <nav class="article-nav">
+  
+    <a class="article-nav-link article-nav-link--prev" title="Previous article" href="/ydn-db/doc/query/cmpidx.html">
+      Previous 'Compound index'
+    </a>
+  
+  
+    <a class="article-nav-link article-nav-link--next" title="Next article" href="/ydn-db/doc/query/join-query.html" style="float: right;">
+      Next 'Join query'
+    </a>
+  
+  </nav>
+</div>
+
+
+          <br /><div class="g-comments" data-href="/ydn-db/ydn-db/nosql-query.html"></div>
+        </div>
+      </div>
+
+
+
+      
+        
+
+
+
+
+
+      
+      
+
+
+<script src="/jsc/ydn.db-dev.js"></script>
+
+    </div> <!-- /.article-container -->
+    <div class="container clear">
+	<div id="gc-content-license" class="gc-content-license g-wide--3 g-wide--last" >
+		
+		<div class="container clear">
+	<div class="g-wide--3 g-wide--last">
+    
+		<h4>Authors</h4>
+		
+		
+    <a href="/resources/contributors/index.html#kyawtun">
+      Kyaw Tun</a>
+		
+    
+	</div>
+</div>
+
+	</div>
+</div>
+
+    <footer class="main-footer">
+  <div class="main-footer__container container clear">
+    <div class="main-footer__list-group">
+      <ul class="main-footer__list main-footer__list--primary">
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--<strong>ydn-db</strong>  sitemap__item--home  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/index.html" title="Go to <strong>YDN-DB</strong>">
+            <strong>YDN-DB</strong>
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--download  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/downloads.html" title="Go to Download">
+            Download
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--documentation  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/doc/index.html" title="Go to Documentation">
+            Documentation
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--api  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="/ydn-db/api/ydn/db/storage.html" title="Go to API">
+            API
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--examples  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="//dev.yathit.com/ydn-db/doc/example/index.html" title="Go to Examples">
+            Examples
+          </a>
+        </li>
+        
+      
+
+        
+
+        
+        <li class="sitemap__item sitemap__item--github  ">
+          <a class="sitemap-list__link sitemap-list__link--parent" href="https://github.com/yathit/ydn-db" title="Go to GitHub">
+            GitHub
+          </a>
+        </li>
+        
+      
+      </ul>
+
+      <div class="main-footer__google-section">
+        <h3 class="main-footer__title"><a href="/ydn-db/">
+          <img id="developers-logo-footer" src="/imgs/yathit-dev-network.svg" alt="Yathit Developer Network logo">
+        </a></h3>
+        <ul class="main-footer__list main-footer__list--secondary google-list">
+          <li><a href="https://www.yathit.com/">Yathit</a></li>
+          <li><a href="https://www.yathit.com/terms.html">Terms of Service</a></li>
+          <li><a href="https://www.yathit.com/privacy.html">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    <script src="/jsc/prettify.js"></script>
+
+    
+<script src="/js/script.js"></script>
+<script src="/jsc/website-app.js"></script>
+<script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+
+
+
+
+
+  </body>
+</html>
+
